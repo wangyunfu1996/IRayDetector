@@ -14,22 +14,22 @@
 
 void QtLogger::initialize()
 {
-	// ÉèÖÃ Qt ÈÕÖ¾¸ñÊ½²¢°²×°ÏûÏ¢´¦ÀíÆ÷
+	// è®¾ç½® Qt æ—¥å¿—æ ¼å¼å¹¶å®‰è£…æ¶ˆæ¯å¤„ç†å™¨
 	//setMessagePattern();
 	installMessageHandler();
 
-	// ×¢²á Windows Î´´¦ÀíÒì³£»Øµ÷£¬Éú³É dump
+	// æ³¨å†Œ Windows æœªå¤„ç†å¼‚å¸¸å›è°ƒï¼Œç”Ÿæˆ dump
 	SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)applicationCrashHandler);
 
-	qDebug() << "ÈÕÖ¾Ä£¿éÒÑ³õÊ¼»¯";
-	qInfo() << "ÈÕÖ¾Ä£¿éÒÑ³õÊ¼»¯";
-	qWarning() << "ÈÕÖ¾Ä£¿éÒÑ³õÊ¼»¯";
-	qCritical() << "ÈÕÖ¾Ä£¿éÒÑ³õÊ¼»¯";
+	qDebug() << "æ—¥å¿—æ¨¡å—å·²åˆå§‹åŒ–";
+	qInfo() << "æ—¥å¿—æ¨¡å—å·²åˆå§‹åŒ–";
+	qWarning() << "æ—¥å¿—æ¨¡å—å·²åˆå§‹åŒ–";
+	qCritical() << "æ—¥å¿—æ¨¡å—å·²åˆå§‹åŒ–";
 }
 
 LONG WINAPI QtLogger::applicationCrashHandler(EXCEPTION_POINTERS* pException)
 {
-	// ´´½¨ Dump ÎÄ¼ş
+	// åˆ›å»º Dump æ–‡ä»¶
 	HANDLE hDumpFile = CreateFile(L"XRayMEMORY.DMP", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hDumpFile != INVALID_HANDLE_VALUE) {
 		MINIDUMP_EXCEPTION_INFORMATION dumpInfo;
@@ -40,12 +40,12 @@ LONG WINAPI QtLogger::applicationCrashHandler(EXCEPTION_POINTERS* pException)
 		CloseHandle(hDumpFile);
 	}
 
-	// µ¯´°ÌáÊ¾²¢ÍË³ö
+	// å¼¹çª—æç¤ºå¹¶é€€å‡º
 	EXCEPTION_RECORD* record = pException->ExceptionRecord;
 	QString errCode(QString::number(record->ExceptionCode, 16));
 	QString errAdr(QString::number((uint)record->ExceptionAddress, 16));
-	QMessageBox::critical(NULL, "³ÌĞò±ÀÀ£",
-		QString("<div><b>¶ÔÓÚ·¢ÉúµÄ´íÎó£¬±íÊ¾³ÏÖ¿µÄÇ¸Òâ</b><br/>´íÎó´úÂë£º%1<br/>´íÎóµØÖ·£º%2</div>").arg(errCode).arg(errAdr),
+	QMessageBox::critical(NULL, "ç¨‹åºå´©æºƒ",
+		QString("<div><b>å¯¹äºå‘ç”Ÿçš„é”™è¯¯ï¼Œè¡¨ç¤ºè¯šæŒšçš„æ­‰æ„</b><br/>é”™è¯¯ä»£ç ï¼š%1<br/>é”™è¯¯åœ°å€ï¼š%2</div>").arg(errCode).arg(errAdr),
 		QMessageBox::Ok);
 
 	return EXCEPTION_EXECUTE_HANDLER;
@@ -70,7 +70,7 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
 	static QMutex mutex;
 	QMutexLocker locker(&mutex);
 
-	// ¼¶±ğÓ³Éä
+	// çº§åˆ«æ˜ å°„
 	QString level = "UNKNOWN";
 	switch (type) {
 	case QtDebugMsg: level = "DEBUG"; break;
@@ -83,7 +83,7 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
 	default: break;
 	}
 
-	// ±£»¤ context ×Ö¶Î¿ÉÄÜÎª nullptr µÄÇé¿ö
+	// ä¿æŠ¤ context å­—æ®µå¯èƒ½ä¸º nullptr çš„æƒ…å†µ
 	const char* cfile = context.file ? context.file : "";
 	const char* cfunc = context.function ? context.function : "";
 	QString fileName = QFileInfo(QString::fromUtf8(cfile)).fileName();
@@ -100,7 +100,7 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
 		.arg(funcName.isEmpty() ? QString("-") : funcName)
 		.arg(msg);
 
-	// Êä³öµ½ Visual Studio µ÷ÊÔ´°¿Ú£¨Windows£©£¬·ñÔò»ØÍËµ½ stderr
+	// è¾“å‡ºåˆ° Visual Studio è°ƒè¯•çª—å£ï¼ˆWindowsï¼‰ï¼Œå¦åˆ™å›é€€åˆ° stderr
 #ifdef Q_OS_WIN
 	std::wstring wmsg = logMessage.toStdWString();
 	OutputDebugStringW(wmsg.c_str());
@@ -110,7 +110,7 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
 	fflush(stderr);
 #endif
 
-	// ÈÕÖ¾ÎÄ¼ş°´ÌìÉú³É£¬Èô³¬¹ı´óĞ¡ÔòÂÖ×ª
+	// æ—¥å¿—æ–‡ä»¶æŒ‰å¤©ç”Ÿæˆï¼Œè‹¥è¶…è¿‡å¤§å°åˆ™è½®è½¬
 	const qint64 maxSize = 20LL * 1024 * 1024; // 20 MB
 	QString logsDir = qApp->applicationDirPath() + "/logs";
 	QString today = QDate::currentDate().toString("yyyy-MM-dd");
@@ -130,13 +130,13 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
 	if (logFile.isOpen()) {
 		QFileInfo fi(logFile.fileName());
 		if (fi.exists() && fi.size() >= maxSize) {
-			// ÂÖ×ª£º±£Áô¶à¸ö±¸·İÎÄ¼ş£¬°´ĞòºÅÃüÃûÎª base.N.ext£¨ÀıÈç app-YYYY-MM-DD.1.log£©
+			// è½®è½¬ï¼šä¿ç•™å¤šä¸ªå¤‡ä»½æ–‡ä»¶ï¼ŒæŒ‰åºå·å‘½åä¸º base.N.extï¼ˆä¾‹å¦‚ app-YYYY-MM-DD.1.logï¼‰
 			logFile.close();
 			QFileInfo dfi(desiredLogPath);
 			QString base = dfi.absolutePath() + "/" + dfi.completeBaseName();
 			QString ext = dfi.suffix();
 
-			// ÕÒµ½µÚÒ»¸ö¿ÉÓÃµÄĞòºÅ
+			// æ‰¾åˆ°ç¬¬ä¸€ä¸ªå¯ç”¨çš„åºå·
 			int idx = 1;
 			QString rotated;
 			for (; idx <= 999; ++idx) {
@@ -145,7 +145,7 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
 			}
 
 			if (idx > 999) {
-				// ±¸·İ¹ı¶à£¬É¾³ı×î¾ÉµÄ£¨ĞòºÅ1£©£¬È»ºóÊ¹ÓÃĞòºÅ1
+				// å¤‡ä»½è¿‡å¤šï¼Œåˆ é™¤æœ€æ—§çš„ï¼ˆåºå·1ï¼‰ï¼Œç„¶åä½¿ç”¨åºå·1
 				QString oldest = QString("%1.%2.%3").arg(base).arg(1).arg(ext);
 				QFile::remove(oldest);
 				rotated = oldest;
@@ -153,7 +153,7 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
 
 			QFile::rename(fi.absoluteFilePath(), rotated);
 
-			// ÖØĞÂ´ò¿ªĞÂµÄÈÕÖ¾ÎÄ¼ş
+			// é‡æ–°æ‰“å¼€æ–°çš„æ—¥å¿—æ–‡ä»¶
 			logFile.setFileName(desiredLogPath);
 			logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
 		}
@@ -166,7 +166,7 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
 		}
 	}
 
-	// ÖÂÃü´íÎóÁ¢¼´ÖÕÖ¹½ø³Ì
+	// è‡´å‘½é”™è¯¯ç«‹å³ç»ˆæ­¢è¿›ç¨‹
 	if (type == QtFatalMsg) {
 		abort();
 	}

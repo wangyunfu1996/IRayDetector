@@ -1,9 +1,9 @@
 #include "IRayDetectorWidgetsApplication.h"
 
-IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget *parent)
-    : QMainWindow(parent)
+IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
+	: QMainWindow(parent)
 {
-    ui.setupUi(this);
+	ui.setupUi(this);
 }
 
 IRayDetectorWidgetsApplication::~IRayDetectorWidgetsApplication()

@@ -5,13 +5,13 @@
 
 class IRayDetectorWidgetsApplication : public QMainWindow
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    IRayDetectorWidgetsApplication(QWidget *parent = nullptr);
-    ~IRayDetectorWidgetsApplication();
+	IRayDetectorWidgetsApplication(QWidget* parent = nullptr);
+	~IRayDetectorWidgetsApplication();
 
 private:
-    Ui::IRayDetectorWidgetsApplicationClass ui;
+	Ui::IRayDetectorWidgetsApplicationClass ui;
 };
 
