@@ -92,7 +92,9 @@ class CDetector
             cmdparam.var.vt = IVT_STR;
             const std::string& strV = obj;
             cmdparam.var.val.strVal[strV.length()] = '\0';
-            strncpy(cmdparam.var.val.strVal, strV.c_str(), strV.length());
+            //strncpy(cmdparam.var.val.strVal, strV.c_str(), strV.length());
+            strncpy_s(cmdparam.var.val.strVal, IRAY_MAX_STR_LEN, strV.c_str(), strV.length());
+
         }
         paramlist.emplace_back(cmdparam);
     }
@@ -133,7 +135,8 @@ public:
     int GetAttr(int nAttrID, float& retV);
     int GetAttr(int nAttrID, std::string& retV);
 
-    int CDetector::GetAttrInt(int nAttrID)
+    //int CDetector::GetAttrInt(int nAttrID)
+    int GetAttrInt(int nAttrID)
     {
         int nValue = 0;
         GetAttr(nAttrID, nValue);
