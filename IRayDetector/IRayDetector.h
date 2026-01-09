@@ -12,6 +12,13 @@ public:
 	IRayDetector(QObject* parent = nullptr);
 	~IRayDetector();
 
+	int Initializte();
+	void DeInitializte();
+
+	void SingleAcq();
+	void StartSeqAcq();
+	void StopSeqAcq();
+
 private:
 	QString m_uuid;
 };

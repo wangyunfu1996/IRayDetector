@@ -29,7 +29,7 @@ typedef void* LIBMODULE;
 #include <stdio.h>
 using namespace::std;
 
-#define TRACE printf
+//#define TRACE printf
 
 class IRayCmdObject
 {
