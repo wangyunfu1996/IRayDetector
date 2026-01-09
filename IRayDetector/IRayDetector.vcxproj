@@ -66,11 +66,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\$(ProjectName)\include</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\$(ProjectName)\include</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
@@ -105,9 +107,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <QtMoc Include="IRayDetector.h" />
+    <ClInclude Include="Common\Detector.h" />
+    <ClInclude Include="Common\DisplayProgressbar.h" />
+    <ClInclude Include="Common\IRayInclude.h" />
+    <ClInclude Include="Common\Util.h" />
+    <ClInclude Include="Common\winevent.h" />
     <ClInclude Include="iraydetector_global.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Common\Detector.cpp" />
+    <ClCompile Include="Common\winevent.cpp" />
     <ClCompile Include="IRayDetector.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

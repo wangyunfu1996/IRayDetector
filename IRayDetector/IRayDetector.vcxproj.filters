@@ -21,15 +21,39 @@
       <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
       <Extensions>ts</Extensions>
     </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{e80866f4-2c61-410a-a48b-bda4fb354fa3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Common\winevent.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Util.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\IRayInclude.h">
+      <Filter>Common</Filter>
+    </ClInclude>
     <ClInclude Include="iraydetector_global.h">
-      <Filter>Header Files</Filter>
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\DisplayProgressbar.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Detector.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IRayDetector.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\Detector.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\winevent.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
