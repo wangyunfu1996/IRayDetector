@@ -151,20 +151,21 @@ int IRayDetector::GetAttr(int nAttrID, std::string& strVal)
 	return gs_pDetInstance->GetAttr(nAttrID, strVal);
 }
 
-void IRayDetector::UpdateMode(std::string mode)
+int IRayDetector::UpdateMode(std::string mode)
 {
 	std::string current_mode;
 	int ret = gs_pDetInstance->GetAttr(Attr_CurrentSubset, current_mode);
 	if (current_mode == mode)
 	{
 		qDebug() << "目标模式与当前模式相同，当前模式" << current_mode.c_str();
-		return;
+		return Err_OK;
 	}
+
 	ret = gs_pDetInstance->SyncInvoke(Cmd_SetCaliSubset, mode, 50000);
 	if (Err_OK != ret)
 	{
 		qDebug() << "修改探测器工作模式失败！";
-		return;
+		return ret;
 	}
 
 	int w{ -1 };
@@ -182,6 +183,56 @@ void IRayDetector::UpdateMode(std::string mode)
 		<< " Attr_Height: " << h
 		<< " Attr_AcqParam_Binning_W: " << bin
 		<< " Attr_AcqParam_Zoom_W: " << zoom;
+
+	return Err_OK;
+}
+
+int IRayDetector::GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect)
+{
+	int nCurrentCorrectOption{ -1 };
+	int ret = gs_pDetInstance->GetAttr(Attr_CurrentCorrectOption, nCurrentCorrectOption);
+	if (Err_OK != ret)
+	{
+		return ret;
+	}
+
+	sw_offset = (nCurrentCorrectOption & Enm_CorrectOp_SW_PreOffset) ? 1 : 0;
+	sw_gain = (nCurrentCorrectOption & Enm_CorrectOp_SW_Gain) ? 1 : 0;
+	sw_defect = (nCurrentCorrectOption & Enm_CorrectOp_SW_Defect) ? 1 : 0;
+
+	return Err_OK;
+}
+
+int IRayDetector::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
+{
+	int nCorrectOption{ Enm_CorrectOp_Null };
+	if (sw_offset)
+	{
+		nCorrectOption |= Enm_CorrectOp_SW_PreOffset;
+	}
+
+	if (sw_gain)
+	{
+		nCorrectOption |= Enm_CorrectOp_SW_Gain;
+	}
+	
+	if (sw_defect)
+	{
+		nCorrectOption |= Enm_CorrectOp_SW_Defect;
+	}
+
+	int ret = gs_pDetInstance->SyncInvoke(Cmd_SetCorrectOption, nCorrectOption, 5000);
+	if (Err_OK != ret)
+	{
+		qDebug() << "修改探测器校正模式失败！"
+			<< gs_pDetInstance->GetErrorInfo(ret).c_str();
+		return ret;
+	}
+
+	qDebug() << "修改探测器校正模式成功："
+		<< " Enm_CorrectOp_SW_PreOffset: " << sw_offset
+		<< " Enm_CorrectOp_SW_Gain: " << sw_gain
+		<< " Enm_CorrectOp_SW_Defect: " << sw_defect;
 }
 
 void IRayDetector::SingleAcq()

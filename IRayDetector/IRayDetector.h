@@ -24,7 +24,9 @@ public:
 	int GetAttr(int nAttrID, float& fVal);
 	int GetAttr(int nAttrID, std::string& strVal);
 
-	void UpdateMode(std::string mode);
+	int UpdateMode(std::string mode);
+	int GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect);
+	int SetCorrectOption(int sw_offset, int sw_gain, int sw_defect);
 	void SingleAcq();
 	void StartSeqAcq();
 	void StopSeqAcq();
