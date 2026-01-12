@@ -66,7 +66,7 @@ namespace {
 				qDebug("nImageSize %d", nImageSize);
 				qDebug("nFrameNo %d", nFrameNo);
 				qDebug("nImageID %d", nImageID);
-		}
+			}
 			break;
 		default:
 			break;
@@ -257,6 +257,12 @@ int IRayDetector::SetPreviewImageEnable(int enable)
 	return ret;
 }
 
+int IRayDetector::GetDetectorState(int& state)
+{
+	int ret = gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, state);
+	return ret;
+}
+
 void IRayDetector::ClearAcq()
 {
 	//int nExposeWindowTime = 5000;
@@ -267,15 +273,20 @@ void IRayDetector::ClearAcq()
 	gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 5000);
 }
 
-void IRayDetector::StartSeqAcq()
+void IRayDetector::StartAcq()
 {
-	TRACE("Sequence acquiring...\n");
-	gs_pDetInstance->Invoke(Cmd_StartAcq);
+	TRACE("Sequence acquiring...");
+	int ret = gs_pDetInstance->Invoke(Cmd_StartAcq);
+	if (Err_OK != ret)
+	{
+		qDebug() << "启动连续采集失败！"
+			<< gs_pDetInstance->GetErrorInfo(ret).c_str();
+	}
 }
 
-void IRayDetector::StopSeqAcq()
+void IRayDetector::StopAcq()
 {
-	TRACE("Stop Sequence acquiring...\n");
+	TRACE("Stop Sequence acquiring...");
 	gs_pDetInstance->SyncInvoke(Cmd_StopAcq, 2000);
 }
 

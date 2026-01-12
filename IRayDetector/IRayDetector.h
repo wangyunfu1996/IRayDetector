@@ -28,9 +28,22 @@ public:
 	int GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect);
 	int SetCorrectOption(int sw_offset, int sw_gain, int sw_defect);
 	int SetPreviewImageEnable(int enable);
+
+	//enum Enm_DetectorState
+	//{
+	//	Enm_State_Unknown = 0,
+	//	Enm_State_Ready = 1,
+	//	Enm_State_Busy = 2,
+	//	Enm_State_Sleeping = 3,
+	//};
+	int GetDetectorState(int& state);
+
 	void ClearAcq();
-	void StartSeqAcq();
-	void StopSeqAcq();
+	void StartAcq();
+	void StopAcq();
+
+signals:
+	void signalAcqImageReceived();
 
 private:
 	QString m_uuid;

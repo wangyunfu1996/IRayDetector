@@ -1,6 +1,9 @@
 #include "IRayDetectorWidgetsApplication.h"
 
+#include <QtConcurrent/QtConcurrent>
+
 #include <qdebug.h>
+#include <qmessagebox.h>
 
 #include "../IRayDetector/IRayDetector.h"
 
@@ -101,6 +104,25 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 		DET.ClearAcq();
 		});
 
+	connect(ui.pushButton_StartAcq, &QPushButton::clicked, this, [this]() {
+		int state{ -1 };
+		DET.GetDetectorState(state);
+		if (state == 2)
+		{
+			QMessageBox::warning(nullptr,
+				"警告",
+				"请等待当前采集完成，或取消当前采集任务！",
+				"确定");
+			return;
+		}
+		
+		DET.StartAcq();
+
+		});
+
+	connect(ui.pushButton_StopAcq, &QPushButton::clicked, this, [this]() {
+		DET.StopAcq();
+		});
 }
 
 IRayDetectorWidgetsApplication::~IRayDetectorWidgetsApplication()

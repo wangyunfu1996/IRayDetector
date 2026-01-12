@@ -163,9 +163,16 @@
      </widget>
     </item>
     <item row="8" column="4">
-     <widget class="QPushButton" name="pushButton_2">
+     <widget class="QPushButton" name="pushButton_StartAcq">
       <property name="text">
-       <string>多帧采集</string>
+       <string>连续采集</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="5">
+     <widget class="QPushButton" name="pushButton_StopAcq">
+      <property name="text">
+       <string>停止采集</string>
       </property>
      </widget>
     </item>
