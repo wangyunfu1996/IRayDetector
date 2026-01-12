@@ -119,6 +119,12 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
 	static QFile logFile;
 	static QString currentLogPath;
 
+	// 如果程序退出后，继续写入当前文件
+	if (desiredLogPath.startsWith("/logs"))
+	{
+		desiredLogPath = currentLogPath;
+	}
+
 	if (currentLogPath != desiredLogPath) {
 		if (logFile.isOpen()) logFile.close();
 		QDir().mkpath(logsDir);

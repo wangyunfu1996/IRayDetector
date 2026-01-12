@@ -55,9 +55,15 @@
     <ClCompile Include="Common\winevent.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="ApplicatioModeFileHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="IRayDetector.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ApplicatioModeFileHelper.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

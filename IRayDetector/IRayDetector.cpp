@@ -6,12 +6,17 @@
 #include "Common/Detector.h"
 #include "Common/DisplayProgressbar.h"
 
+#include "ApplicatioModeFileHelper.h"
+
 #define TRACE qDebug
+
+#pragma warning(disable:4996)
 
 namespace {
 	static CDetector* gs_pDetInstance = nullptr;
 	static IRayTimer s_timer;
 	static int s_nExpWindow = 0;
+	static std::vector<ApplicatioMode> s_appmode;
 
 	void TimeProc(int uTimerID)
 	{
@@ -27,6 +32,15 @@ namespace {
 	void SDKCallbackHandler(int nDetectorID, int nEventID, int nEventLevel,
 		const char* pszMsg, int nParam1, int nParam2, int nPtrParamLen, void* pParam)
 	{
+		TRACE(pszMsg);
+		qDebug() << "nEventID: " << nEventID
+			<< " nEventLevel: " << nEventLevel
+			<< " pszMsg: " << pszMsg
+			<< " nParam1: " << nParam1
+			<< " nParam2: " << nParam2
+			<< " nPtrParamLen: " << nPtrParamLen
+			<< " pParam: " << pParam;
+
 		gs_pDetInstance->SDKCallback(nDetectorID, nEventID, nEventLevel, pszMsg, nParam1, nParam2, nPtrParamLen, pParam);
 		switch (nEventID)
 		{
@@ -47,6 +61,7 @@ namespace {
 				unsigned short* pImageData = pImg->pData;
 				int nImageSize = pImg->nWidth * pImg->nHeight * pImg->nBytesPerPixel;
 				int nFrameNo = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_FrameNo);
+				TRACE("nImageSize %d", nImageSize);
 			}
 			break;
 		default:
@@ -68,6 +83,12 @@ IRayDetector::~IRayDetector()
 }
 
 
+IRayDetector& IRayDetector::Instance()
+{
+	static IRayDetector iRayDetector;
+	return iRayDetector;
+}
+
 int IRayDetector::Initializte()
 {
 	gs_pDetInstance = new CDetector();
@@ -82,7 +103,7 @@ int IRayDetector::Initializte()
 		TRACE("\t\t\t[Yes]\n");
 
 	TRACE("Create instance");
-	ret = gs_pDetInstance->Create(GetWorkDirPath().c_str(), SDKCallbackHandler);
+	ret = gs_pDetInstance->Create("D:\\NDT1717MA", SDKCallbackHandler);
 	if (Err_OK != ret)
 	{
 		TRACE("\t\t\t[No ] - error:%s\n", gs_pDetInstance->GetErrorInfo(ret).c_str());
@@ -113,6 +134,54 @@ void IRayDetector::DeInitializte()
 		delete gs_pDetInstance;
 		gs_pDetInstance = NULL;
 	}
+}
+
+int IRayDetector::GetAttr(int nAttrID, int& nVal)
+{
+	return gs_pDetInstance->GetAttr(nAttrID, nVal);
+}
+
+int IRayDetector::GetAttr(int nAttrID, float& fVal)
+{
+	return gs_pDetInstance->GetAttr(nAttrID, fVal);
+}
+
+int IRayDetector::GetAttr(int nAttrID, std::string& strVal)
+{
+	return gs_pDetInstance->GetAttr(nAttrID, strVal);
+}
+
+void IRayDetector::UpdateMode(std::string mode)
+{
+	std::string current_mode;
+	int ret = gs_pDetInstance->GetAttr(Attr_CurrentSubset, current_mode);
+	if (current_mode == mode)
+	{
+		qDebug() << "目标模式与当前模式相同，当前模式" << current_mode.c_str();
+		return;
+	}
+	ret = gs_pDetInstance->SyncInvoke(Cmd_SetCaliSubset, mode, 50000);
+	if (Err_OK != ret)
+	{
+		qDebug() << "修改探测器工作模式失败！";
+		return;
+	}
+
+	int w{ -1 };
+	gs_pDetInstance->GetAttr(Attr_Width, w);
+	int h{ -1 };
+	gs_pDetInstance->GetAttr(Attr_Height, h);
+	int bin{ -1 };
+	gs_pDetInstance->GetAttr(Attr_AcqParam_Binning_W, bin);
+	int zoom{ -1 };
+	gs_pDetInstance->GetAttr(Attr_AcqParam_Zoom_W, zoom);
+
+	qDebug() << "修改探测器工作模式成功，"
+		<< " 当前工作模式：" << mode.c_str()
+		<< " Attr_Width: " << w
+		<< " Attr_Height: " << h
+		<< " Attr_AcqParam_Binning_W: " << bin
+		<< " Attr_AcqParam_Zoom_W: " << zoom;
 }
 
 void IRayDetector::SingleAcq()

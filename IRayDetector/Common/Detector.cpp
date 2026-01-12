@@ -40,7 +40,9 @@ int CDetector::LoadIRayLibrary()
 	}
 	EXTRACT_FUNC(FnCreate, Create);
 	EXTRACT_FUNC(FnDestroy, Destroy);
-	EXTRACT_FUNC(FnGetAttr, GetAttr);
+	//EXTRACT_FUNC(FnGetAttr, GetAttr);
+	m_pFnGetAttr = (FnGetAttr)GetProcAddress(m_hModule, IRAY_FPD_PROC_NAME_GETATTR);
+	m_pFnSetAttr = nullptr;
 	EXTRACT_FUNC(FnSetAttr, SetAttr);
 	EXTRACT_FUNC(FnInvoke, Invoke);
 	EXTRACT_FUNC(FnAbort, Abort);
@@ -254,6 +256,7 @@ int CDetector::GetAttr(int nAttrID, int& retV)
     retV = var.val.nVal;
     return Err_OK;
 }
+
 int CDetector::GetAttr(int nAttrID, float& retV)
 {
     IRayVariant var;
@@ -269,6 +272,7 @@ int CDetector::GetAttr(int nAttrID, float& retV)
     retV = var.val.fVal;
     return Err_OK;
 }
+
 int CDetector::GetAttr(int nAttrID, std::string& retV)
 {
     IRayVariant var;
@@ -341,7 +345,6 @@ void CDetector::SDKCallback(int nDetectorID, int nEventID, int nEventLevel,
 {
     if ((Evt_TaskResult_Succeed == nEventID) || (Evt_TaskResult_Failed == nEventID) || (Evt_TaskResult_Canceled == nEventID))
 	{
-
         if (Evt_TaskResult_Canceled == nEventID)
             m_nLastError = Err_Unknown;
         else

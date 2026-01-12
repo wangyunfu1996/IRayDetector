@@ -69,16 +69,17 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\$(ProjectName)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Winmm.lib;lib\x64\iniParser.lib;lib\x64\iniParser_dbg.lib;lib\x64\tinyxmlSTL.lib;lib\x64\tinyxmlSTL_dbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(SolutionDir)\$(ProjectName)\include</AdditionalIncludeDirectories>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Winmm.lib;lib\x64\iniParser.lib;lib\x64\iniParser_dbg.lib;lib\x64\tinyxmlSTL.lib;lib\x64\tinyxmlSTL_dbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
@@ -97,7 +98,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>IRAYDETECTOR_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IRAYDETECTOR_LIB;QT_MESSAGELOGCONTEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
@@ -106,13 +107,14 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <QtMoc Include="IRayDetector.h" />
+    <QtMoc Include="ApplicatioModeFileHelper.h" />
     <ClInclude Include="Common\Detector.h" />
     <ClInclude Include="Common\DisplayProgressbar.h" />
     <ClInclude Include="Common\IRayInclude.h" />
@@ -121,6 +123,7 @@
     <ClInclude Include="iraydetector_global.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ApplicatioModeFileHelper.cpp" />
     <ClCompile Include="Common\Detector.cpp" />
     <ClCompile Include="Common\winevent.cpp" />
     <ClCompile Include="IRayDetector.cpp" />

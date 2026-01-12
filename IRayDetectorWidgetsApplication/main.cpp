@@ -10,12 +10,10 @@ int main(int argc, char* argv[])
 	QApplication app(argc, argv);
 
 	QtLogger::initialize();
-
-	IRayDetector* pIRayDetector = new IRayDetector;
-	if (pIRayDetector->Initializte() != 0)
+	if (DET.Initializte() != 0)
 	{
 		qDebug() << "探测器初始化失败！";
-		pIRayDetector->DeInitializte();
+		DET.DeInitializte();
 	}
 
 	IRayDetectorWidgetsApplication window;
