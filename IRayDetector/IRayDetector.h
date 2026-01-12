@@ -27,7 +27,8 @@ public:
 	int UpdateMode(std::string mode);
 	int GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect);
 	int SetCorrectOption(int sw_offset, int sw_gain, int sw_defect);
-	void SingleAcq();
+	int SetPreviewImageEnable(int enable);
+	void ClearAcq();
 	void StartSeqAcq();
 	void StopSeqAcq();
 

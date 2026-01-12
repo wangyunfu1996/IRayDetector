@@ -97,6 +97,10 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 		}
 		});
 
+	connect(ui.pushButton_clearAcq, &QPushButton::clicked, this, [this]() {
+		DET.ClearAcq();
+		});
+
 }
 
 IRayDetectorWidgetsApplication::~IRayDetectorWidgetsApplication()

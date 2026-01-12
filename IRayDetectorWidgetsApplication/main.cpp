@@ -27,6 +27,8 @@ int main(int argc, char* argv[])
 		sw_gain = 1;
 		sw_defect = 1;
 		DET.SetCorrectOption(sw_offset, sw_gain, sw_defect);
+
+		DET.SetPreviewImageEnable(0);
 	}
 
 

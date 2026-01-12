@@ -32,7 +32,6 @@ namespace {
 	void SDKCallbackHandler(int nDetectorID, int nEventID, int nEventLevel,
 		const char* pszMsg, int nParam1, int nParam2, int nPtrParamLen, void* pParam)
 	{
-		TRACE(pszMsg);
 		qDebug() << "nEventID: " << nEventID
 			<< " nEventLevel: " << nEventLevel
 			<< " pszMsg: " << pszMsg
@@ -45,24 +44,29 @@ namespace {
 		switch (nEventID)
 		{
 		case Evt_ConnectProcess:
-			TRACE(pszMsg);
 			break;
 		case Evt_Exp_Enable:
-			TRACE("Prepare to expose\n");
+			qDebug("Prepare to expose");
 			s_timer.Init(TimeProc, 1000);
 			s_nExpWindow = nParam1 / 1000;
-			TRACE("Please expose in %ds\r", s_nExpWindow);
+			qDebug("Please expose in %ds", s_nExpWindow);
 			break;
 		case Evt_Image:
-			TRACE("\nGot image\n");
 			{
 				//must make deep copies of pParam
 				IRayImage* pImg = (IRayImage*)pParam;
 				unsigned short* pImageData = pImg->pData;
 				int nImageSize = pImg->nWidth * pImg->nHeight * pImg->nBytesPerPixel;
 				int nFrameNo = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_FrameNo);
-				TRACE("nImageSize %d", nImageSize);
-			}
+				int nImageID = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_ImageID);
+				
+				qDebug("pImg->nWidth %d", pImg->nWidth);
+				qDebug("pImg->nHeight %d", pImg->nHeight);
+				qDebug("pImg->nBytesPerPixel %d", pImg->nBytesPerPixel);
+				qDebug("nImageSize %d", nImageSize);
+				qDebug("nFrameNo %d", nFrameNo);
+				qDebug("nImageID %d", nImageID);
+		}
 			break;
 		default:
 			break;
@@ -235,15 +239,32 @@ int IRayDetector::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 		<< " Enm_CorrectOp_SW_Defect: " << sw_defect;
 }
 
-void IRayDetector::SingleAcq()
+int IRayDetector::SetPreviewImageEnable(int enable)
 {
-	TRACE("Set to SyncOut mode\n");
-	gs_pDetInstance->SetAttr(Attr_UROM_FluroSync_W, Enm_FluroSync_SyncOut);
-	gs_pDetInstance->SyncInvoke(Cmd_WriteUserRAM, 4000);
-	int nExposeWindowTime = 5000;
-	int nTimeOut = nExposeWindowTime + 2000;
-	gs_pDetInstance->SetAttr(Cfg_ClearAcqParam_DelayTime, nExposeWindowTime);
-	gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, nTimeOut);
+	{
+		int current_enbale{ -1 };
+		gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, current_enbale);
+		qDebug() << "Cfg_PreviewImage_Enable: " << current_enbale;
+	}
+
+	int ret = gs_pDetInstance->SetAttr(Cfg_PreviewImage_Enable, enable);
+
+	{
+		int current_enbale{ -1 };
+		gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, current_enbale);
+		qDebug() << "Cfg_PreviewImage_Enable: " << current_enbale;
+	}
+	return ret;
+}
+
+void IRayDetector::ClearAcq()
+{
+	//int nExposeWindowTime = 5000;
+	//int nTimeOut = nExposeWindowTime + 2000;
+	//gs_pDetInstance->SetAttr(Cfg_ClearAcqParam_DelayTime, nExposeWindowTime);
+	//gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, nTimeOut);
+
+	gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 5000);
 }
 
 void IRayDetector::StartSeqAcq()
