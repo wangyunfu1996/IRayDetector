@@ -1,5 +1,8 @@
 #include "TiffHelper.h"
 
+#include <qdebug.h>
+#include <qfileinfo.h>
+
 #include "../libtiff/include/tiff.h"
 #include "../libtiff/include/tiffio.h"
 
@@ -56,5 +59,86 @@ QImage TiffHelper::ReadImage(const std::string& file_path)
 	}
 
 	return image;
+}
+
+bool TiffHelper::SaveImage(QImage image, const std::string& file_path)
+{
+	if (image.isNull()) {
+		qWarning() << "图像为空";
+		return false;
+	}
+
+	if (image.format() != QImage::Format_Grayscale16) {
+		qWarning() << "图像格式不是 Grayscale16，当前格式:" << image.format();
+		return false;
+	}
+
+	int width = image.width();
+	int height = image.height();
+	if (width <= 0 || height <= 0) {
+		qWarning() << "无效的图像尺寸:" << width << "x" << height;
+		return false;
+	}
+
+	// 打开 TIFF 文件用于写入
+	TIFF* tif = TIFFOpen(file_path.c_str(), "w");
+	if (!tif) {
+		qWarning() << "无法创建 TIFF 文件:" << file_path.c_str();
+		return false;
+	}
+
+	bool success = true;
+	try {
+		// 设置基本的 TIFF 标签
+		TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, static_cast<uint32_t>(width));
+		TIFFSetField(tif, TIFFTAG_IMAGELENGTH, static_cast<uint32_t>(height));
+		TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, 1);  // 单通道灰度
+		TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, 16);   // 16位
+		TIFFSetField(tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
+		TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);  // 0=黑色，最大值=白色
+
+		// 设置样本格式为无符号整数
+		TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
+
+		// 设置行配置
+		TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(tif, static_cast<uint32_t>(width)));
+
+		// 准备行缓冲区
+		std::vector<uint16_t> lineBuffer(width);
+
+		// 逐行写入数据
+		for (int y = 0; y < height; ++y) {
+			const uint16_t* scanLine = reinterpret_cast<const uint16_t*>(image.scanLine(y));
+
+			// 复制数据到缓冲区
+			std::copy(scanLine, scanLine + width, lineBuffer.begin());
+
+			// 写入一行数据
+			if (TIFFWriteScanline(tif, lineBuffer.data(), static_cast<uint32_t>(y), 0) < 0) {
+				qWarning() << "写入第" << y << "行失败";
+				success = false;
+				break;
+			}
+		}
+
+	}
+	catch (const std::exception& e) {
+		qWarning() << "保存 TIFF 时发生异常:" << e.what();
+		success = false;
+	}
+
+	TIFFClose(tif);
+
+	if (!success) {
+		QFile::remove(file_path.c_str());  // 删除不完整的文件
+	}
+	else
+	{
+		qDebug() << "成功保存 TIFF 文件:" << file_path.c_str()
+			<< "尺寸:" << width << "x" << height
+			<< "大小:" << QFileInfo(file_path.c_str()).size() << "bytes";
+	}
+
+	return success;
 }
 

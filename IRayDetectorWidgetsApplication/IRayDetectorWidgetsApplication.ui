@@ -246,6 +246,13 @@
       </property>
      </widget>
     </item>
+    <item row="10" column="4">
+     <widget class="QPushButton" name="pushButton_saveImage">
+      <property name="text">
+       <string>保存图像</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">

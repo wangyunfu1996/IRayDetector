@@ -14,5 +14,6 @@ public:
 	~TiffHelper();
 
 	static QImage ReadImage(const std::string& file_path);
+	static bool SaveImage(QImage image, const std::string& file_path);
 };
 

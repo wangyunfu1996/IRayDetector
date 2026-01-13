@@ -175,13 +175,37 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 			label = new QLabel;
 		}
 
-		QImage image = TiffHelper::ReadImage("X:\\repos\\IRayDetector\\data\\grabImg.tiff");
+		//QImage image = TiffHelper::ReadImage("X:\\repos\\IRayDetector\\data\\grabImg.tiff");
+		QImage image = TiffHelper::ReadImage("X:\\repos\\IRayDetector\\data\\savedImage.tiff");
 		qDebug() << image.format();
 		label->resize(image.width(), image.height());
 		qDebug() << "更新图像";
 		label->setPixmap(QPixmap::fromImage(image));
 
 		label->show();
+		});
+
+	connect(ui.pushButton_saveImage, &QPushButton::clicked, this, [this]() {
+		int width = 2000;
+		int height = 500;
+		int value = 32768;
+		// 创建16位灰度图像
+		QImage image(width, height, QImage::Format_Grayscale16);
+
+		if (image.isNull()) {
+			qWarning() << "无法创建图像: 尺寸" << width << "x" << height;
+			return;
+		}
+
+		// 填充所有像素为指定值
+		for (int y = 0; y < height; ++y) {
+			uint16_t* scanLine = reinterpret_cast<uint16_t*>(image.scanLine(y));
+			for (int x = 0; x < width; ++x) {
+				scanLine[x] = value;
+			}
+		}
+
+		TiffHelper::SaveImage(image, "X:\\repos\\IRayDetector\\data\\savedImage.tiff");
 		});
 }
 
