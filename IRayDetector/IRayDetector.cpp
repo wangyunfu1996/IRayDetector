@@ -57,7 +57,6 @@ namespace {
 		}
 		case Evt_Image:
 		{
-			//must make deep copies of pParam
 			IRayImage* pImg = (IRayImage*)pParam;
 			unsigned short* pImageData = pImg->pData;
 			int nImageSize = pImg->nWidth * pImg->nHeight * pImg->nBytesPerPixel;
@@ -65,6 +64,19 @@ namespace {
 			int nImageID = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_ImageID);
 			int nAvgValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_AvgValue);
 			int nCenterValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_CenterValue);
+
+			//IRayVariantMapItem* pItem = pImg->propList.pItems;
+			//int nItemCnt = pImg->propList.nItemCount;
+			//while (nItemCnt--)
+			//{
+			//	qDebug() << "pItem->nMapKey: " << pItem->nMapKey
+			//		<< " Enm_ImageTag: " << QString("0x%1").arg(pItem->nMapKey, 4, 16, QChar('0')).toUpper()
+			//		<< " pItem->varMapVal.vt: " << pItem->varMapVal.vt
+			//		<< " pItem->varMapVal.val.nVal: " << pItem->varMapVal.val.nVal
+			//		<< " pItem->varMapVal.val.fVal: " << pItem->varMapVal.val.fVal
+			//		<< " pItem->varMapVal.val.strVal: " << pItem->varMapVal.val.strVal;
+			//	pItem++;
+			//}
 
 			qDebug() << "pImg->nWidth: " << pImg->nWidth
 				<< " pImg->nHeight: " << pImg->nHeight
@@ -74,6 +86,7 @@ namespace {
 				<< " nImageID: " << nImageID
 				<< " nAvgValue: " << nAvgValue
 				<< " nCenterValue: " << nCenterValue;
+
 			break;
 		}
 		case Evt_TaskResult_Succeed:
@@ -209,6 +222,11 @@ int IRayDetector::UpdateMode(std::string mode)
 
 int IRayDetector::GetCurrentCorrectOption(int& sw_offset, int& sw_gain, int& sw_defect)
 {
+	if (nullptr == gs_pDetInstance)
+	{
+		return Err_NotInitialized;
+	}
+
 	int nCurrentCorrectOption{ -1 };
 	int ret = gs_pDetInstance->GetAttr(Attr_CurrentCorrectOption, nCurrentCorrectOption);
 	if (Err_OK != ret)
@@ -275,8 +293,10 @@ int IRayDetector::SetPreviewImageEnable(int enable)
 
 int IRayDetector::GetDetectorState(int& state)
 {
-	int ret = gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, state);
-	return ret;
+	int result = gs_pDetInstance->GetAttr(Cfg_PreviewImage_Enable, state);
+	qDebug() << "result: " << result
+		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+	return result;
 }
 
 void IRayDetector::ClearAcq()
@@ -286,18 +306,17 @@ void IRayDetector::ClearAcq()
 	//gs_pDetInstance->SetAttr(Cfg_ClearAcqParam_DelayTime, nExposeWindowTime);
 	//gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, nTimeOut);
 
-	gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 5000);
+	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 5000);
+	qDebug() << "result: " << result
+		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 }
 
 void IRayDetector::StartAcq()
 {
 	qDebug("Sequence acquiring...");
-	int ret = gs_pDetInstance->Invoke(Cmd_StartAcq);
-	if (Err_TaskPending != ret)
-	{
-		qDebug() << "启动连续采集失败！"
-			<< gs_pDetInstance->GetErrorInfo(ret).c_str();
-	}
+	int result = gs_pDetInstance->Invoke(Cmd_StartAcq);
+	qDebug() << "result: " << result
+		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 }
 
 void IRayDetector::StopAcq()
@@ -334,4 +353,64 @@ int IRayDetector::OffsetGeneration()
 
 	return Err_OK;
 }
+
+int IRayDetector::GainGeneration()
+{
+	qDebug("Generate gain...");
+	int result = gs_pDetInstance->SyncInvoke(Cmd_GainInit, 5000);
+	if (Err_OK != result)
+	{
+		qDebug("GainInit failed! err=%s", gs_pDetInstance->GetErrorInfo(result).c_str());
+		return result;
+	}
+
+	// 获取参数
+	int nGainTotalFrames = gs_pDetInstance->GetAttrInt(Attr_GainTotalFrames);
+
+	// 等待射线源就绪
+
+	// 采集亮场图像
+	result = gs_pDetInstance->Invoke(Cmd_StartAcq);
+	if (result == Err_TaskPending)
+	{
+		std::thread t([this, nGainTotalFrames]() {
+			int nValid{ 0 };
+			do
+			{
+				nValid = gs_pDetInstance->GetAttrInt(Attr_GainValidFrames);
+				qDebug() << "nGainTotalFrames: " << nGainTotalFrames
+					<< " nValid: " << nValid;
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			} while (nValid < nGainTotalFrames);
+
+			int ret = gs_pDetInstance->Invoke(Cmd_GainGeneration);
+			if (ret != Err_OK)
+			{
+				qDebug("Generate gain map failed! err=%s", gs_pDetInstance->GetErrorInfo(ret).c_str());
+			}
+			else
+			{
+				qDebug() << "Generate gain done...";
+			}
+			});
+		t.detach();
+	}
+	return Err_OK;
+}
+
+void IRayDetector::StopGainGeneration()
+{
+	int result = gs_pDetInstance->SyncInvoke(Cmd_FinishGenerationProcess, 3000);
+	qDebug() << "result: " << result
+		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+}
+
+int IRayDetector::Abort()
+{
+	int result = gs_pDetInstance->Abort();
+	qDebug() << "result: " << result
+		<< gs_pDetInstance->GetErrorInfo(result).c_str();
+	return result;
+}
+
 

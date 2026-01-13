@@ -6,6 +6,7 @@
 #include <qmessagebox.h>
 
 #include "../IRayDetector/IRayDetector.h"
+#include "../IRayDetector/TiffHelper.h"
 
 IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 	: QMainWindow(parent)
@@ -37,6 +38,10 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 
 	connect(ui.pushButton_disconnect, &QPushButton::clicked, this, [this]() {
 		DET.DeInitialize();
+		});
+
+	connect(ui.pushButton_Abort, &QPushButton::clicked, this, [this]() {
+		DET.Abort();
 		});
 
 	ui.comboBox_mode->addItem("Mode5");
@@ -153,6 +158,30 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 
 	connect(ui.pushButton_OffsetGeneration, &QPushButton::clicked, this, [this]() {
 		DET.OffsetGeneration();
+		});
+
+	connect(ui.pushButton_GainGeneration, &QPushButton::clicked, this, [this]() {
+		DET.GainGeneration();
+		});
+	connect(ui.pushButton_GainGenerationStop, &QPushButton::clicked, this, [this]() {
+		DET.StopGainGeneration();
+		});
+
+	connect(ui.pushButton_readImage, &QPushButton::clicked, this, [this]() {
+		static QLabel* label = nullptr;
+		if (nullptr == label)
+		{
+			qDebug() << "新建 QLabel";
+			label = new QLabel;
+		}
+
+		QImage image = TiffHelper::ReadImage("X:\\repos\\IRayDetector\\data\\grabImg.tiff");
+		qDebug() << image.format();
+		label->resize(image.width(), image.height());
+		qDebug() << "更新图像";
+		label->setPixmap(QPixmap::fromImage(image));
+
+		label->show();
 		});
 }
 

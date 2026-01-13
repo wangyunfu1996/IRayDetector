@@ -356,17 +356,17 @@ void CDetector::SDKCallback(int nDetectorID, int nEventID, int nEventLevel,
 
 int CDetector::GetImagePropertyInt(IRayVariantMap* pProperties, int nTagId)
 {
-    if (!pProperties) 
-        return -1;
+	if (!pProperties)
+		return -1;
 
-    for (int nItemIndex=0; nItemIndex < pProperties->nItemCount; nItemIndex++)
-    {
-        if (nTagId == pProperties->pItems[nItemIndex].nMapKey)
-        {
-            return pProperties->pItems[nItemIndex].varMapVal.vt == IVT_INT ? pProperties->pItems[nItemIndex].varMapVal.val.nVal : -1;
-        }
-    }
-    return -1;
+	for (int nItemIndex = 0; nItemIndex < pProperties->nItemCount; nItemIndex++)
+	{
+		if (nTagId == pProperties->pItems[nItemIndex].nMapKey)
+		{
+			return pProperties->pItems[nItemIndex].varMapVal.vt == IVT_INT ? pProperties->pItems[nItemIndex].varMapVal.val.nVal : -1;
+		}
+	}
+	return -1;
 }
 
 int CDetector::OpenDefectTemplateFile(
