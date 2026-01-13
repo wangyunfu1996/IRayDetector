@@ -150,6 +150,10 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 	connect(ui.pushButton_StopAcq, &QPushButton::clicked, this, [this]() {
 		DET.StopAcq();
 		});
+
+	connect(ui.pushButton_OffsetGeneration, &QPushButton::clicked, this, [this]() {
+		DET.OffsetGeneration();
+		});
 }
 
 IRayDetectorWidgetsApplication::~IRayDetectorWidgetsApplication()

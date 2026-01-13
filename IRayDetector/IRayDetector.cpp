@@ -1,5 +1,7 @@
 #include "IRayDetector.h"
 
+#include <thread>
+
 #include <qdebug.h>
 #include <quuid.h>
 
@@ -7,8 +9,6 @@
 #include "Common/DisplayProgressbar.h"
 
 #include "ApplicatioModeFileHelper.h"
-
-#define TRACE qDebug
 
 #pragma warning(disable:4996)
 
@@ -18,6 +18,8 @@ namespace {
 	static int s_nExpWindow = 0;
 	static std::vector<ApplicatioMode> s_appmode;
 
+	static std::atomic_bool s_bOffsetGenerationSucceedOrFailed{ false };
+
 	void TimeProc(int uTimerID)
 	{
 		s_nExpWindow -= 1;
@@ -26,7 +28,7 @@ namespace {
 			s_timer.Close();
 			return;
 		}
-		TRACE("Please expose in %ds", s_nExpWindow);
+		qDebug("Please expose in %ds", s_nExpWindow);
 	}
 
 	void SDKCallbackHandler(int nDetectorID, int nEventID, int nEventLevel,
@@ -46,31 +48,41 @@ namespace {
 		case Evt_ConnectProcess:
 			break;
 		case Evt_Exp_Enable:
+		{
 			qDebug("Prepare to expose");
 			s_timer.Init(TimeProc, 1000);
 			s_nExpWindow = nParam1 / 1000;
 			qDebug("Please expose in %ds", s_nExpWindow);
 			break;
-		case Evt_Image:
-			{
-				//must make deep copies of pParam
-				IRayImage* pImg = (IRayImage*)pParam;
-				unsigned short* pImageData = pImg->pData;
-				int nImageSize = pImg->nWidth * pImg->nHeight * pImg->nBytesPerPixel;
-				int nFrameNo = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_FrameNo);
-				int nImageID = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_ImageID);
-				int nAvgValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_AvgValue);
-				int nCenterValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_CenterValue);
-
-				qDebug() << "pImg->nWidth: " << pImg->nWidth
-					<< " pImg->nHeight: " << pImg->nHeight
-					<< " pImg->nBytesPerPixel: " << pImg->nBytesPerPixel
-					<< " nImageSize: " << nImageSize
-					<< " nFrameNo: " << nFrameNo
-					<< " nImageID: " << nImageID
-					<< " nAvgValue: " << nAvgValue
-					<< " nCenterValue: " << nCenterValue;
 		}
+		case Evt_Image:
+		{
+			//must make deep copies of pParam
+			IRayImage* pImg = (IRayImage*)pParam;
+			unsigned short* pImageData = pImg->pData;
+			int nImageSize = pImg->nWidth * pImg->nHeight * pImg->nBytesPerPixel;
+			int nFrameNo = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_FrameNo);
+			int nImageID = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_ImageID);
+			int nAvgValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_AvgValue);
+			int nCenterValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_CenterValue);
+
+			qDebug() << "pImg->nWidth: " << pImg->nWidth
+				<< " pImg->nHeight: " << pImg->nHeight
+				<< " pImg->nBytesPerPixel: " << pImg->nBytesPerPixel
+				<< " nImageSize: " << nImageSize
+				<< " nFrameNo: " << nFrameNo
+				<< " nImageID: " << nImageID
+				<< " nAvgValue: " << nAvgValue
+				<< " nCenterValue: " << nCenterValue;
+			break;
+		}
+		case Evt_TaskResult_Succeed:
+		case Evt_TaskResult_Failed:
+			if (nParam1 == Cmd_OffsetGeneration)
+			{
+				qDebug("Offset template generated - {%s}", gs_pDetInstance->GetErrorInfo(nParam2).c_str());
+				s_bOffsetGenerationSucceedOrFailed.store(true);
+			}
 			break;
 		default:
 			break;
@@ -82,12 +94,12 @@ IRayDetector::IRayDetector(QObject* parent)
 	: QObject(parent)
 {
 	m_uuid = QUuid::createUuid().toString();
-	TRACE() << "构造探测器实例：" << m_uuid;
+	qDebug() << "构造探测器实例：" << m_uuid;
 }
 
 IRayDetector::~IRayDetector()
 {
-	TRACE() << "析构探测器实例：" << m_uuid;
+	qDebug() << "析构探测器实例：" << m_uuid;
 }
 
 
@@ -100,35 +112,35 @@ IRayDetector& IRayDetector::Instance()
 int IRayDetector::Initialize()
 {
 	gs_pDetInstance = new CDetector();
-	TRACE("Load libray");
+	qDebug("Load libray");
 	int ret = gs_pDetInstance->LoadIRayLibrary();
 	if (Err_OK != ret)
 	{
-		TRACE("[No ]");
+		qDebug("[No ]");
 		return ret;
 	}
 	else
-		TRACE("[Yes]");
+		qDebug("[Yes]");
 
-	TRACE("Create instance");
+	qDebug("Create instance");
 	ret = gs_pDetInstance->Create("D:\\NDT1717MA", SDKCallbackHandler);
 	if (Err_OK != ret)
 	{
-		TRACE("[No ] - error:%s", gs_pDetInstance->GetErrorInfo(ret).c_str());
+		qDebug("[No ] - error:%s", gs_pDetInstance->GetErrorInfo(ret).c_str());
 		return ret;
 	}
 	else
-		TRACE("[Yes]");
+		qDebug("[Yes]");
 
-	TRACE("Connect device");
+	qDebug("Connect device");
 	ret = gs_pDetInstance->SyncInvoke(Cmd_Connect, 30000);
 	if (Err_OK != ret)
 	{
-		TRACE("[No ] - error:%s", gs_pDetInstance->GetErrorInfo(ret).c_str());
+		qDebug("[No ] - error:%s", gs_pDetInstance->GetErrorInfo(ret).c_str());
 		return ret;
 	}
 	else
-		TRACE("[Yes]");
+		qDebug("[Yes]");
 
 	return ret;
 }
@@ -223,7 +235,7 @@ int IRayDetector::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 	{
 		nCorrectOption |= Enm_CorrectOp_SW_Gain;
 	}
-	
+
 	if (sw_defect)
 	{
 		nCorrectOption |= Enm_CorrectOp_SW_Defect;
@@ -279,7 +291,7 @@ void IRayDetector::ClearAcq()
 
 void IRayDetector::StartAcq()
 {
-	TRACE("Sequence acquiring...");
+	qDebug("Sequence acquiring...");
 	int ret = gs_pDetInstance->Invoke(Cmd_StartAcq);
 	if (Err_TaskPending != ret)
 	{
@@ -290,7 +302,36 @@ void IRayDetector::StartAcq()
 
 void IRayDetector::StopAcq()
 {
-	TRACE("Stop Sequence acquiring...");
+	qDebug("Stop Sequence acquiring...");
 	gs_pDetInstance->SyncInvoke(Cmd_StopAcq, 2000);
+}
+
+int IRayDetector::OffsetGeneration()
+{
+	int nOffsetTotalFrames = gs_pDetInstance->GetAttrInt(Attr_OffsetTotalFrames);
+	int nIntervalTimeOfEachFrame = gs_pDetInstance->GetAttrInt(Attr_UROM_SequenceIntervalTime);
+	qDebug("Generate offset...");
+	int timeout = (nOffsetTotalFrames + 10) * nIntervalTimeOfEachFrame + 5000;
+	int ret = gs_pDetInstance->Invoke(Cmd_OffsetGeneration);
+	if (ret == Err_TaskPending)
+	{
+		s_bOffsetGenerationSucceedOrFailed.store(false);
+		std::thread t([this, nOffsetTotalFrames, timeout]() {
+			int nValid{ 0 };
+			do
+			{
+				nValid = gs_pDetInstance->GetAttrInt(Attr_OffsetValidFrames);
+				qDebug() << "nOffsetTotalFrames: " << nOffsetTotalFrames
+					<< " nValid: " << nValid;
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			} while (!s_bOffsetGenerationSucceedOrFailed.load());
+
+			gs_pDetInstance->WaitEvent(timeout);
+			qDebug() << "Generate offset done...";
+			});
+		t.detach();
+	}
+
+	return Err_OK;
 }
 

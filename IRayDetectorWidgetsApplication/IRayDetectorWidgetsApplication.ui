@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>605</width>
+    <height>410</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,57 +15,11 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="5" column="4">
-     <widget class="QLineEdit" name="lineEdit_nVal"/>
+    <item row="8" column="2">
+     <widget class="QLineEdit" name="lineEdit_msg"/>
     </item>
-    <item row="6" column="2">
-     <widget class="QPushButton" name="pushButton_fVal">
-      <property name="text">
-       <string>GetAttr fVal</string>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="1">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>错误信息</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>模式</string>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="2">
-     <widget class="QPushButton" name="pushButton_clearAcq">
-      <property name="text">
-       <string>单帧采集</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>属性id</string>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="5">
-     <widget class="QPushButton" name="pushButton_StopAcq">
-      <property name="text">
-       <string>停止采集</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="2">
-     <widget class="QCheckBox" name="checkBox_offset">
-      <property name="text">
-       <string>offset</string>
-      </property>
-     </widget>
+    <item row="7" column="4">
+     <widget class="QLineEdit" name="lineEdit_strVal"/>
     </item>
     <item row="10" column="2">
      <spacer name="verticalSpacer">
@@ -80,9 +34,6 @@
       </property>
      </spacer>
     </item>
-    <item row="8" column="2">
-     <widget class="QLineEdit" name="lineEdit_msg"/>
-    </item>
     <item row="3" column="0">
      <spacer name="horizontalSpacer">
       <property name="orientation">
@@ -96,7 +47,7 @@
       </property>
      </spacer>
     </item>
-    <item row="5" column="5">
+    <item row="3" column="7">
      <spacer name="horizontalSpacer_2">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -109,10 +60,17 @@
       </property>
      </spacer>
     </item>
-    <item row="3" column="5">
-     <widget class="QCheckBox" name="checkBox_defect">
+    <item row="8" column="1">
+     <widget class="QLabel" name="label_2">
       <property name="text">
-       <string>defect</string>
+       <string>错误信息</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QPushButton" name="pushButton_connect">
+      <property name="text">
+       <string>连接</string>
       </property>
      </widget>
     </item>
@@ -123,13 +81,10 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="2">
-     <widget class="QLineEdit" name="lineEdit_nAttrID"/>
-    </item>
-    <item row="3" column="4">
-     <widget class="QCheckBox" name="checkBox_gain">
+    <item row="3" column="5">
+     <widget class="QCheckBox" name="checkBox_defect">
       <property name="text">
-       <string>gain</string>
+       <string>defect</string>
       </property>
      </widget>
     </item>
@@ -137,6 +92,23 @@
      <widget class="QLabel" name="label_4">
       <property name="text">
        <string>校正</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="4">
+     <widget class="QLineEdit" name="lineEdit_fVal"/>
+    </item>
+    <item row="9" column="2">
+     <widget class="QPushButton" name="pushButton_clearAcq">
+      <property name="text">
+       <string>单帧采集</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QPushButton" name="pushButton_nVal">
+      <property name="text">
+       <string>GetAttr nVal</string>
       </property>
      </widget>
     </item>
@@ -153,16 +125,6 @@
       </property>
      </spacer>
     </item>
-    <item row="2" column="2">
-     <widget class="QComboBox" name="comboBox_mode"/>
-    </item>
-    <item row="5" column="2">
-     <widget class="QPushButton" name="pushButton_nVal">
-      <property name="text">
-       <string>GetAttr nVal</string>
-      </property>
-     </widget>
-    </item>
     <item row="7" column="2">
      <widget class="QPushButton" name="pushButton_strVal">
       <property name="text">
@@ -170,16 +132,10 @@
       </property>
      </widget>
     </item>
-    <item row="7" column="4">
-     <widget class="QLineEdit" name="lineEdit_strVal"/>
-    </item>
-    <item row="6" column="4">
-     <widget class="QLineEdit" name="lineEdit_fVal"/>
-    </item>
-    <item row="1" column="2">
-     <widget class="QPushButton" name="pushButton_connect">
+    <item row="2" column="1">
+     <widget class="QLabel" name="label">
       <property name="text">
-       <string>连接</string>
+       <string>模式</string>
       </property>
      </widget>
     </item>
@@ -190,6 +146,76 @@
       </property>
      </widget>
     </item>
+    <item row="4" column="2">
+     <widget class="QLineEdit" name="lineEdit_nAttrID"/>
+    </item>
+    <item row="2" column="2">
+     <widget class="QComboBox" name="comboBox_mode"/>
+    </item>
+    <item row="6" column="2">
+     <widget class="QPushButton" name="pushButton_fVal">
+      <property name="text">
+       <string>GetAttr fVal</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="2">
+     <widget class="QCheckBox" name="checkBox_offset">
+      <property name="text">
+       <string>offset</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>属性id</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="4">
+     <widget class="QCheckBox" name="checkBox_gain">
+      <property name="text">
+       <string>gain</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="5">
+     <widget class="QPushButton" name="pushButton_StopAcq">
+      <property name="text">
+       <string>停止采集</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="4">
+     <widget class="QLineEdit" name="lineEdit_nVal"/>
+    </item>
+    <item row="1" column="6" rowspan="5">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab_offset">
+       <attribute name="title">
+        <string>offset</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pushButton_OffsetGeneration">
+          <property name="text">
+           <string>OffsetGeneration</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_gain">
+       <attribute name="title">
+        <string>gain</string>
+       </attribute>
+      </widget>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -197,7 +223,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>600</width>
+     <width>605</width>
      <height>21</height>
     </rect>
    </property>

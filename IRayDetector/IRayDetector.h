@@ -42,6 +42,8 @@ public:
 	void StartAcq();
 	void StopAcq();
 
+	int OffsetGeneration();
+
 signals:
 	void signalAcqImageReceived();
 
