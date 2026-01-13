@@ -61,7 +61,7 @@ QImage TiffHelper::ReadImage(const std::string& file_path)
 	return image;
 }
 
-bool TiffHelper::SaveImage(QImage image, const std::string& file_path)
+bool TiffHelper::SaveImage(const QImage& image, const std::string& file_path)
 {
 	if (image.isNull()) {
 		qWarning() << "图像为空";
@@ -140,5 +140,31 @@ bool TiffHelper::SaveImage(QImage image, const std::string& file_path)
 	}
 
 	return success;
+}
+
+std::pair<uint16_t, uint16_t> TiffHelper::GetMinMaxValues(const QImage& image)
+{
+	if (image.isNull() || image.format() != QImage::Format_Grayscale16) {
+		qWarning() << "无效的图像或格式不正确";
+		return { 0, 0 };
+	}
+
+	uint16_t minVal = 65535;  // 16位最大值
+	uint16_t maxVal = 0;
+
+	int width = image.width();
+	int height = image.height();
+
+	for (int y = 0; y < height; ++y) {
+		const uint16_t* scanLine = reinterpret_cast<const uint16_t*>(image.scanLine(y));
+
+		for (int x = 0; x < width; ++x) {
+			uint16_t pixel = scanLine[x];
+			if (pixel < minVal) minVal = pixel;
+			if (pixel > maxVal) maxVal = pixel;
+		}
+	}
+
+	return { minVal, maxVal };
 }
 

@@ -14,6 +14,7 @@ public:
 	~TiffHelper();
 
 	static QImage ReadImage(const std::string& file_path);
-	static bool SaveImage(QImage image, const std::string& file_path);
+	static bool SaveImage(const QImage& image, const std::string& file_path);
+	static std::pair<uint16_t, uint16_t> GetMinMaxValues(const QImage& image);
 };
 

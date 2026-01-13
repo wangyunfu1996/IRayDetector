@@ -175,8 +175,14 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 			label = new QLabel;
 		}
 
-		//QImage image = TiffHelper::ReadImage("X:\\repos\\IRayDetector\\data\\grabImg.tiff");
-		QImage image = TiffHelper::ReadImage("X:\\repos\\IRayDetector\\data\\savedImage.tiff");
+		qDebug() << "开始读取图像";
+		QImage image = TiffHelper::ReadImage("X:\\repos\\IRayDetector\\data\\grabImg.tiff");
+		//QImage image = TiffHelper::ReadImage("X:\\repos\\IRayDetector\\data\\savedImage.tiff");
+		qDebug() << "读取图像结束";
+		std::pair<uint16_t, uint16_t> valuesMinMax = TiffHelper::GetMinMaxValues(image);
+		qDebug() << "min: " << valuesMinMax.first
+			<< " max: " << valuesMinMax.second;
+
 		qDebug() << image.format();
 		label->resize(image.width(), image.height());
 		qDebug() << "更新图像";
