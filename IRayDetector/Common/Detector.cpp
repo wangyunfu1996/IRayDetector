@@ -40,9 +40,7 @@ int CDetector::LoadIRayLibrary()
 	}
 	EXTRACT_FUNC(FnCreate, Create);
 	EXTRACT_FUNC(FnDestroy, Destroy);
-	//EXTRACT_FUNC(FnGetAttr, GetAttr);
-	m_pFnGetAttr = (FnGetAttr)GetProcAddress(m_hModule, IRAY_FPD_PROC_NAME_GETATTR);
-	m_pFnSetAttr = nullptr;
+	EXTRACT_FUNC(FnGetAttr, GetAttr);
 	EXTRACT_FUNC(FnSetAttr, SetAttr);
 	EXTRACT_FUNC(FnInvoke, Invoke);
 	EXTRACT_FUNC(FnAbort, Abort);

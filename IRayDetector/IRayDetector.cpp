@@ -26,7 +26,7 @@ namespace {
 			s_timer.Close();
 			return;
 		}
-		TRACE("Please expose in %ds\r", s_nExpWindow);
+		TRACE("Please expose in %ds", s_nExpWindow);
 	}
 
 	void SDKCallbackHandler(int nDetectorID, int nEventID, int nEventLevel,
@@ -59,14 +59,18 @@ namespace {
 				int nImageSize = pImg->nWidth * pImg->nHeight * pImg->nBytesPerPixel;
 				int nFrameNo = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_FrameNo);
 				int nImageID = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_ImageID);
-				
-				qDebug("pImg->nWidth %d", pImg->nWidth);
-				qDebug("pImg->nHeight %d", pImg->nHeight);
-				qDebug("pImg->nBytesPerPixel %d", pImg->nBytesPerPixel);
-				qDebug("nImageSize %d", nImageSize);
-				qDebug("nFrameNo %d", nFrameNo);
-				qDebug("nImageID %d", nImageID);
-			}
+				int nAvgValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_AvgValue);
+				int nCenterValue = gs_pDetInstance->GetImagePropertyInt(&pImg->propList, Enm_ImageTag_CenterValue);
+
+				qDebug() << "pImg->nWidth: " << pImg->nWidth
+					<< " pImg->nHeight: " << pImg->nHeight
+					<< " pImg->nBytesPerPixel: " << pImg->nBytesPerPixel
+					<< " nImageSize: " << nImageSize
+					<< " nFrameNo: " << nFrameNo
+					<< " nImageID: " << nImageID
+					<< " nAvgValue: " << nAvgValue
+					<< " nCenterValue: " << nCenterValue;
+		}
 			break;
 		default:
 			break;
@@ -93,43 +97,43 @@ IRayDetector& IRayDetector::Instance()
 	return iRayDetector;
 }
 
-int IRayDetector::Initializte()
+int IRayDetector::Initialize()
 {
 	gs_pDetInstance = new CDetector();
 	TRACE("Load libray");
 	int ret = gs_pDetInstance->LoadIRayLibrary();
 	if (Err_OK != ret)
 	{
-		TRACE("\t\t\t[No ]\n");
+		TRACE("[No ]");
 		return ret;
 	}
 	else
-		TRACE("\t\t\t[Yes]\n");
+		TRACE("[Yes]");
 
 	TRACE("Create instance");
 	ret = gs_pDetInstance->Create("D:\\NDT1717MA", SDKCallbackHandler);
 	if (Err_OK != ret)
 	{
-		TRACE("\t\t\t[No ] - error:%s\n", gs_pDetInstance->GetErrorInfo(ret).c_str());
+		TRACE("[No ] - error:%s", gs_pDetInstance->GetErrorInfo(ret).c_str());
 		return ret;
 	}
 	else
-		TRACE("\t\t\t[Yes]\n");
+		TRACE("[Yes]");
 
 	TRACE("Connect device");
 	ret = gs_pDetInstance->SyncInvoke(Cmd_Connect, 30000);
 	if (Err_OK != ret)
 	{
-		TRACE("\t\t\t[No ] - error:%s\n", gs_pDetInstance->GetErrorInfo(ret).c_str());
+		TRACE("[No ] - error:%s", gs_pDetInstance->GetErrorInfo(ret).c_str());
 		return ret;
 	}
 	else
-		TRACE("\t\t\t[Yes]\n");
+		TRACE("[Yes]");
 
 	return ret;
 }
 
-void IRayDetector::DeInitializte()
+void IRayDetector::DeInitialize()
 {
 	if (gs_pDetInstance)
 	{
@@ -277,7 +281,7 @@ void IRayDetector::StartAcq()
 {
 	TRACE("Sequence acquiring...");
 	int ret = gs_pDetInstance->Invoke(Cmd_StartAcq);
-	if (Err_OK != ret)
+	if (Err_TaskPending != ret)
 	{
 		qDebug() << "启动连续采集失败！"
 			<< gs_pDetInstance->GetErrorInfo(ret).c_str();

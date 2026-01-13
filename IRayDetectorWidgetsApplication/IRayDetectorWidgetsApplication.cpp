@@ -12,6 +12,33 @@ IRayDetectorWidgetsApplication::IRayDetectorWidgetsApplication(QWidget* parent)
 {
 	ui.setupUi(this);
 
+	connect(ui.pushButton_connect, &QPushButton::clicked, this, [this]() {
+		if (DET.Initialize() != 0)
+		{
+			qDebug() << "探测器初始化失败！";
+			DET.DeInitialize();
+		}
+		else
+		{
+			DET.UpdateMode("Mode5");
+			int sw_offset{ -1 };
+			int sw_gain{ -1 };
+			int sw_defect{ -1 };
+			DET.GetCurrentCorrectOption(sw_offset, sw_gain, sw_defect);
+
+			sw_offset = 1;
+			sw_gain = 1;
+			sw_defect = 1;
+			DET.SetCorrectOption(sw_offset, sw_gain, sw_defect);
+
+			DET.SetPreviewImageEnable(0);
+		}
+		});
+
+	connect(ui.pushButton_disconnect, &QPushButton::clicked, this, [this]() {
+		DET.DeInitialize();
+		});
+
 	ui.comboBox_mode->addItem("Mode5");
 	ui.comboBox_mode->addItem("Mode6");
 	ui.comboBox_mode->addItem("Mode7");

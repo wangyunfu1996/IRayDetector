@@ -17,8 +17,8 @@ private:
 public:
 	static IRayDetector& Instance();
 
-	int Initializte();
-	void DeInitializte();
+	int Initialize();
+	void DeInitialize();
 
 	int GetAttr(int nAttrID, int& nVal);
 	int GetAttr(int nAttrID, float& fVal);

@@ -8,12 +8,12 @@
 int main(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
-
 	QtLogger::initialize();
-	if (DET.Initializte() != 0)
+
+	if (DET.Initialize() != 0)
 	{
 		qDebug() << "探测器初始化失败！";
-		DET.DeInitializte();
+		DET.DeInitialize();
 	}
 	else
 	{
@@ -30,7 +30,6 @@ int main(int argc, char* argv[])
 
 		DET.SetPreviewImageEnable(0);
 	}
-
 
 	IRayDetectorWidgetsApplication window;
 	window.show();
