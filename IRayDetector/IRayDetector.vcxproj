@@ -119,7 +119,6 @@
   <ItemGroup>
     <QtMoc Include="TiffHelper.h" />
     <QtMoc Include="IRayDetector.h" />
-    <QtMoc Include="ApplicatioModeFileHelper.h" />
     <ClInclude Include="Common\Detector.h" />
     <ClInclude Include="Common\DisplayProgressbar.h" />
     <ClInclude Include="Common\IRayInclude.h" />
@@ -128,7 +127,6 @@
     <ClInclude Include="iraydetector_global.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ApplicatioModeFileHelper.cpp" />
     <ClCompile Include="Common\Detector.cpp" />
     <ClCompile Include="Common\winevent.cpp" />
     <ClCompile Include="IRayDetector.cpp" />

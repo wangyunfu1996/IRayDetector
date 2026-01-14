@@ -8,15 +8,12 @@
 #include "Common/Detector.h"
 #include "Common/DisplayProgressbar.h"
 
-#include "ApplicatioModeFileHelper.h"
-
 #pragma warning(disable:4996)
 
 namespace {
 	static CDetector* gs_pDetInstance = nullptr;
 	static IRayTimer s_timer;
 	static int s_nExpWindow = 0;
-	static std::vector<ApplicatioMode> s_appmode;
 
 	static std::atomic_bool s_bOffsetGenerationSucceedOrFailed{ false };
 
@@ -301,11 +298,6 @@ int IRayDetector::GetDetectorState(int& state)
 
 void IRayDetector::ClearAcq()
 {
-	//int nExposeWindowTime = 5000;
-	//int nTimeOut = nExposeWindowTime + 2000;
-	//gs_pDetInstance->SetAttr(Cfg_ClearAcqParam_DelayTime, nExposeWindowTime);
-	//gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, nTimeOut);
-
 	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 5000);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();

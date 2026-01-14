@@ -1,7 +1,5 @@
 #include "IRayDetectorWidgetsApplication.h"
 
-#include <QtConcurrent/QtConcurrent>
-
 #include <qdebug.h>
 #include <qmessagebox.h>
 
