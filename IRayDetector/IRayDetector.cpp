@@ -298,7 +298,7 @@ int IRayDetector::GetDetectorState(int& state)
 
 void IRayDetector::ClearAcq()
 {
-	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 5000);
+	int result = gs_pDetInstance->SyncInvoke(Cmd_ClearAcq, 10000);
 	qDebug() << "result: " << result
 		<< gs_pDetInstance->GetErrorInfo(result).c_str();
 }
