@@ -44,9 +44,12 @@
     <ClInclude Include="Common\Detector.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="QtLogger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="IRayDetector.cpp">
+    <ClCompile Include="NDT1717MA.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Common\Detector.cpp">
@@ -58,13 +61,27 @@
     <ClCompile Include="TiffHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="QtLogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IRayDetectorWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="IRayDetector.h">
+    <QtMoc Include="NDT1717MA.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="TiffHelper.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="IRayDetectorWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="IRayDetectorWidget.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
 </Project>

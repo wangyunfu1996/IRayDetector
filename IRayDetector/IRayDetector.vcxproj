@@ -20,13 +20,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
@@ -36,14 +36,16 @@
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
-    <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>core;gui</QtModules>
+    <QtInstall>6.10.0_msvc2022_64</QtInstall>
+    <QtModules>core;gui;widgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
+    <QtDeploy>true</QtDeploy>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>core;gui</QtModules>
+    <QtInstall>6.10.0_msvc2022_64</QtInstall>
+    <QtModules>core;gui;widgets</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
+    <QtDeploy>true</QtDeploy>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -117,8 +119,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <QtMoc Include="IRayDetectorWidget.h" />
+    <ClInclude Include="QtLogger.h" />
     <QtMoc Include="TiffHelper.h" />
-    <QtMoc Include="IRayDetector.h" />
+    <QtMoc Include="NDT1717MA.h" />
     <ClInclude Include="Common\Detector.h" />
     <ClInclude Include="Common\DisplayProgressbar.h" />
     <ClInclude Include="Common\IRayInclude.h" />
@@ -129,8 +133,13 @@
   <ItemGroup>
     <ClCompile Include="Common\Detector.cpp" />
     <ClCompile Include="Common\winevent.cpp" />
-    <ClCompile Include="IRayDetector.cpp" />
+    <ClCompile Include="IRayDetectorWidget.cpp" />
+    <ClCompile Include="NDT1717MA.cpp" />
+    <ClCompile Include="QtLogger.cpp" />
     <ClCompile Include="TiffHelper.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="IRayDetectorWidget.ui" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -26,27 +26,10 @@
     <QtRcc Include="IRayDetectorWidgetsApplication.qrc">
       <Filter>Resource Files</Filter>
     </QtRcc>
-    <QtUic Include="IRayDetectorWidgetsApplication.ui">
-      <Filter>Form Files</Filter>
-    </QtUic>
-    <QtMoc Include="IRayDetectorWidgetsApplication.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <ClCompile Include="IRayDetectorWidgetsApplication.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QtLogger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="QtLogger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
