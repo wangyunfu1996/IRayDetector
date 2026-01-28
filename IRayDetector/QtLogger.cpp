@@ -5,9 +5,11 @@
 #include <QMessageBox>
 #include <QDateTime>
 #include <QTextStream>
-#include <QThread>
 #include <QMutex>
 #include <QApplication>
+#include <QQueue>
+#include <QTimer>
+#include <QThread>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QStringConverter>
@@ -16,8 +18,33 @@
 #include <DbgHelp.h>
 #pragma comment(lib, "dbghelp.lib")
 
+// 初始化静态成员
+QQueue<QString> QtLogger::logQueue;
+QTimer* QtLogger::logTimer = nullptr;
+QMutex QtLogger::logMutex;
+QString QtLogger::currentLogPath;
+QFile* QtLogger::currentLogFile = nullptr;
+const qint64 QtLogger::maxLogFileSize = 20LL * 1024 * 1024;  // 20 MB
+
 void QtLogger::initialize()
 {
+    // 创建日志文件对象
+    if (!currentLogFile)
+    {
+        currentLogFile = new QFile();
+    }
+
+    // 创建定时器用于处理日志队列
+    if (!logTimer)
+    {
+        logTimer = new QTimer();
+        // 使用 lambda 连接 timeout 信号到处理函数
+        QObject::connect(logTimer, &QTimer::timeout, []() {
+            QtLogger::processLogQueue();
+        });
+        logTimer->start(100);  // 每100ms处理一次队列
+    }
+
     // 设置 Qt 日志格式并安装消息处理器
     // setMessagePattern();
     installMessageHandler();
@@ -76,8 +103,8 @@ void QtLogger::installMessageHandler()
 
 void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
-    static QMutex mutex;
-    QMutexLocker locker(&mutex);
+    static QMutex formatMutex;
+    QMutexLocker locker(&formatMutex);
 
     // 级别映射
     QString level = "UNKNOWN";
@@ -131,78 +158,10 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
     fflush(stderr);
 #endif
 
-    // 日志文件按天生成，若超过大小则轮转
-    const qint64 maxSize = 20LL * 1024 * 1024;  // 20 MB
-    QString logsDir = qApp->applicationDirPath() + "/logs";
-    QString today = QDate::currentDate().toString("yyyy-MM-dd");
-    QString desiredLogPath = logsDir + "/app-" + today + ".log";
-
-    static QFile logFile;
-    static QString currentLogPath;
-
-    // 如果程序退出后，继续写入当前文件
-    if (desiredLogPath.startsWith("/logs"))
+    // 将日志消息加入队列（快速路径）
     {
-        desiredLogPath = currentLogPath;
-    }
-
-    if (currentLogPath != desiredLogPath)
-    {
-        if (logFile.isOpen())
-            logFile.close();
-        QDir().mkpath(logsDir);
-        logFile.setFileName(desiredLogPath);
-        logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
-        currentLogPath = desiredLogPath;
-    }
-
-    if (logFile.isOpen())
-    {
-        QFileInfo fi(logFile.fileName());
-        if (fi.exists() && fi.size() >= maxSize)
-        {
-            // 轮转：保留多个备份文件，按序号命名为 base.N.ext（例如 app-YYYY-MM-DD.1.log）
-            logFile.close();
-            QFileInfo dfi(desiredLogPath);
-            QString base = dfi.absolutePath() + "/" + dfi.completeBaseName();
-            QString ext = dfi.suffix();
-
-            // 找到第一个可用的序号
-            int idx = 1;
-            QString rotated;
-            for (; idx <= 999; ++idx)
-            {
-                rotated = QString("%1.%2.%3").arg(base).arg(idx).arg(ext);  // base.idx.ext
-                if (!QFile::exists(rotated))
-                    break;
-            }
-
-            if (idx > 999)
-            {
-                // 备份过多，删除最旧的（序号1），然后使用序号1
-                QString oldest = QString("%1.%2.%3").arg(base).arg(1).arg(ext);
-                QFile::remove(oldest);
-                rotated = oldest;
-            }
-
-            QFile::rename(fi.absoluteFilePath(), rotated);
-
-            // 重新打开新的日志文件
-            logFile.setFileName(desiredLogPath);
-            logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
-        }
-
-        if (logFile.isOpen())
-        {
-            QTextStream stream(&logFile);
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-            stream.setCodec("UTF-8");
-#else
-            stream.setEncoding(QStringConverter::Utf8);
-#endif
-            stream << logMessage;
-            stream.flush();
-        }
+        QMutexLocker queueLock(&logMutex);
+        logQueue.enqueue(logMessage);
     }
 
     // 致命错误立即终止进程
@@ -210,4 +169,116 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
     {
         abort();
     }
+}
+
+QString QtLogger::getLogsDir()
+{
+    return qApp->applicationDirPath() + "/logs";
+}
+
+void QtLogger::processLogQueue()
+{
+    QMutexLocker queueLock(&logMutex);
+
+    // 检查日期变化和打开日志文件
+    QString today = QDate::currentDate().toString("yyyy-MM-dd");
+    QString logsDir = getLogsDir();
+    QString desiredLogPath = logsDir + "/app-" + today + ".log";
+
+    if (currentLogPath != desiredLogPath)
+    {
+        // 日期变化，关闭当前文件并打开新文件
+        if (currentLogFile && currentLogFile->isOpen())
+        {
+            currentLogFile->close();
+        }
+        currentLogPath = desiredLogPath;
+        QDir().mkpath(logsDir);
+        currentLogFile->setFileName(desiredLogPath);
+        currentLogFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+    }
+
+    // 确保文件已打开
+    if (currentLogFile && !currentLogFile->isOpen())
+    {
+        QDir().mkpath(logsDir);
+        currentLogFile->setFileName(currentLogPath);
+        currentLogFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+    }
+
+    // 处理队列中的所有日志
+    while (!logQueue.isEmpty())
+    {
+        QString logMessage = logQueue.dequeue();
+
+        if (currentLogFile && currentLogFile->isOpen())
+        {
+            QTextStream stream(currentLogFile);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+            stream.setCodec("UTF-8");
+#else
+            stream.setEncoding(QStringConverter::Utf8);
+#endif
+            stream << logMessage;
+            stream.flush();
+
+            // 检查文件大小并进行轮转
+            QFileInfo fi(currentLogFile->fileName());
+            if (fi.exists() && fi.size() >= maxLogFileSize)
+            {
+                rotateCurrentLogFile();
+            }
+        }
+    }
+}
+
+bool QtLogger::rotateCurrentLogFile()
+{
+    if (!currentLogFile)
+        return false;
+
+    QString filePath = currentLogFile->fileName();
+    QFileInfo fileInfo(filePath);
+
+    if (!fileInfo.exists())
+        return false;
+
+    // 关闭当前文件
+    if (currentLogFile->isOpen())
+    {
+        currentLogFile->close();
+    }
+
+    // 生成备份文件名: app-2024-01-15.log -> app-2024-01-15_HHmmss.log
+    QString baseName = fileInfo.completeBaseName();  // "app-2024-01-15"
+    QString suffix = fileInfo.suffix();              // "log"
+    QString backupName = QString("%1%2.%3")
+                             .arg(baseName)
+                             .arg(QDateTime::currentDateTime().toString("_HHmmss"))
+                             .arg(suffix);
+
+    QString backupPath = fileInfo.absolutePath() + "/" + backupName;
+
+    // 重命名为备份文件
+    bool success = QFile::rename(filePath, backupPath);
+
+    // 重新打开新的日志文件
+    currentLogFile->setFileName(filePath);
+    currentLogFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+    currentLogPath = filePath;
+
+    return success;
+}
+
+bool QtLogger::cleanupLogs()
+{
+    // 备份当前的日志文件
+    QMutexLocker queueLock(&logMutex);
+
+    if (currentLogFile && currentLogFile->isOpen())
+    {
+        return rotateCurrentLogFile();
+    }
+
+    return false;
 }

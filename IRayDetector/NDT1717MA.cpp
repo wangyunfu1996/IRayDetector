@@ -356,6 +356,7 @@ bool NDT1717MA::UpdateMode(std::string mode)
         }
     }
 
+    m_status.Mode = gs_pDetInstance->GetAttrStr(Attr_CurrentSubset);
     m_status.Width = gs_pDetInstance->GetAttrInt(Attr_Width);
     m_status.Height = gs_pDetInstance->GetAttrInt(Attr_Height);
     m_status.AcqParam_Binning_W = gs_pDetInstance->GetAttrInt(Attr_AcqParam_Binning_W);
@@ -421,10 +422,10 @@ int NDT1717MA::SetCorrectOption(int sw_offset, int sw_gain, int sw_defect)
 
     int result = gs_pDetInstance->SyncInvoke(Cmd_SetCorrectOption, nCorrectOption, INT_MAX);
     dbgResult(result);
-
     int CurrentCorrectOption = gs_pDetInstance->GetAttrInt(Attr_CurrentCorrectOption);
 
-    qDebug() << " Enm_CorrectOp_SW_PreOffset: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_PreOffset) ? 1 : 0)
+    qDebug() << "sw_offset: " << sw_offset << " sw_offset: " << sw_gain << " sw_defect: " << sw_defect
+             << " Enm_CorrectOp_SW_PreOffset: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_PreOffset) ? 1 : 0)
              << " Enm_CorrectOp_SW_Gain: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_Gain) ? 1 : 0)
              << " Enm_CorrectOp_SW_Defect: " << ((CurrentCorrectOption & Enm_CorrectOp_SW_Defect) ? 1 : 0);
 
