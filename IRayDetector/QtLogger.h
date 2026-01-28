@@ -23,12 +23,12 @@ public:
 private:
     static void customMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg);
     static LONG WINAPI applicationCrashHandler(EXCEPTION_POINTERS* pException);
-    
-    // 异步日志写入相关
+
+    // 寮傛鏃ュ織鍐欏叆鐩稿叧
     static void processLogQueue();
     static bool rotateCurrentLogFile();
-    
-    // 私有成员
+
+    // 绉佹湁鎴愬憳
     static QQueue<QString> logQueue;
     static QTimer* logTimer;
     static QMutex logMutex;

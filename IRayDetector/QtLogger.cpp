@@ -42,7 +42,7 @@ void QtLogger::initialize()
         QObject::connect(logTimer, &QTimer::timeout, []() {
             QtLogger::processLogQueue();
         });
-        logTimer->start(100);  // 每100ms处理一次队列
+        logTimer->start(10);  // 每10ms处理一次队列
     }
 
     // 设置 Qt 日志格式并安装消息处理器
