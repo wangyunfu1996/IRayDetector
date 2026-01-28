@@ -5,18 +5,17 @@
 
 namespace Ui
 {
-	class IRayDetectorWidgetClass;
+class IRayDetectorWidgetClass;
 }
 
 class IRAYDETECTOR_EXPORT IRayDetectorWidget : public QMainWindow
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	IRayDetectorWidget(QWidget* parent = nullptr);
-	~IRayDetectorWidget();
+    IRayDetectorWidget(QWidget* parent = nullptr);
+    ~IRayDetectorWidget();
 
 private:
-	Ui::IRayDetectorWidgetClass* ui{ nullptr };
+    Ui::IRayDetectorWidgetClass* ui{nullptr};
 };
-
