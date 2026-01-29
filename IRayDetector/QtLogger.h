@@ -4,12 +4,8 @@
 #include <Windows.h>
 #include <QString>
 #include <QDebug>
-#include <QQueue>
-#include <QSemaphore>
-#include <QMutex>
+#include <QRecursiveMutex>
 #include <QFile>
-
-class QTimer;
 
 class IRAYDETECTOR_EXPORT QtLogger
 {
@@ -24,15 +20,15 @@ private:
     static void customMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg);
     static LONG WINAPI applicationCrashHandler(EXCEPTION_POINTERS* pException);
 
-    // 异步日志写入相关
-    static void processLogQueue();
+    // 日志文件管理
+    static void openLogFile();
     static bool rotateCurrentLogFile();
+    static void flushLogFile();
 
     // 私有成员
-    static QQueue<QString> logQueue;
-    static QTimer* logTimer;
-    static QMutex logMutex;
+    static QRecursiveMutex logMutex;  // 改为递归互斥锁
     static QString currentLogPath;
     static QFile* currentLogFile;
     static const qint64 maxLogFileSize;
+    static bool initialized;
 };

@@ -5,11 +5,11 @@
 #include <QMessageBox>
 #include <QDateTime>
 #include <QTextStream>
-#include <QMutex>
+#include <QRecursiveMutex>
 #include <QApplication>
-#include <QQueue>
-#include <QTimer>
+#include <QFileInfo>
 #include <QThread>
+#include <cstdio>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QStringConverter>
@@ -19,43 +19,34 @@
 #pragma comment(lib, "dbghelp.lib")
 
 // 初始化静态成员
-QQueue<QString> QtLogger::logQueue;
-QTimer* QtLogger::logTimer = nullptr;
-QMutex QtLogger::logMutex;
+QRecursiveMutex QtLogger::logMutex;  // 改为递归互斥锁
 QString QtLogger::currentLogPath;
 QFile* QtLogger::currentLogFile = nullptr;
 const qint64 QtLogger::maxLogFileSize = 20LL * 1024 * 1024;  // 20 MB
+bool QtLogger::initialized = false;
 
 void QtLogger::initialize()
 {
+    QMutexLocker locker(&logMutex);
+    
+    if (initialized)
+        return;
+
     // 创建日志文件对象
     if (!currentLogFile)
     {
         currentLogFile = new QFile();
     }
 
-    // 创建定时器用于处理日志队列
-    if (!logTimer)
-    {
-        logTimer = new QTimer();
-        // 使用 lambda 连接 timeout 信号到处理函数
-        QObject::connect(logTimer, &QTimer::timeout, []() {
-            QtLogger::processLogQueue();
-        });
-        logTimer->start(10);  // 每10ms处理一次队列
-    }
-
-    // 设置 Qt 日志格式并安装消息处理器
-    // setMessagePattern();
+    // 安装消息处理器
     installMessageHandler();
 
     // 注册 Windows 未处理异常回调，生成 dump
     SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)applicationCrashHandler);
 
-    qDebug() << "日志模块已初始化";
-    qInfo() << "日志模块已初始化";
-    qWarning() << "日志模块已初始化";
-    qCritical() << "日志模块已初始化";
+    initialized = true;
+
+    qDebug() << "QtLogger initialized successfully";
 }
 
 LONG WINAPI QtLogger::applicationCrashHandler(EXCEPTION_POINTERS* pException)
@@ -107,25 +98,25 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
     QMutexLocker locker(&formatMutex);
 
     // 级别映射
-    QString level = "UNKNOWN";
+    QString level = "U";
     switch (type)
     {
         case QtDebugMsg:
-            level = "DEBUG";
+            level = "D";
             break;
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
         case QtInfoMsg:
-            level = "INFO";
+            level = "I";
             break;
 #endif
         case QtWarningMsg:
-            level = "WARN";
+            level = "W";
             break;
         case QtCriticalMsg:
-            level = "ERROR";
+            level = "E";
             break;
         case QtFatalMsg:
-            level = "FATAL";
+            level = "F";
             break;
         default:
             break;
@@ -137,7 +128,7 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
     QString fileName = QFileInfo(QString::fromUtf8(cfile)).fileName();
     QString funcName = QString::fromUtf8(cfunc);
 
-    QString threadInfo = QString("Thread[0x%1]").arg((quintptr)QThread::currentThreadId(), 0, 16);
+    QString threadInfo = QString("0x%1").arg((quintptr)QThread::currentThreadId(), 0, 16);
     QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
     QString logMessage = QString("[%1] [%2] [%3] [%4:%5] [%6] %7\n")
                              .arg(timestamp)
@@ -148,7 +139,7 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
                              .arg(funcName.isEmpty() ? QString("-") : funcName)
                              .arg(msg);
 
-    // 输出到 Visual Studio 调试窗口（Windows），否则回退到 stderr
+    // 输出到 Visual Studio 调试窗口
 #ifdef Q_OS_WIN
     std::wstring wmsg = logMessage.toStdWString();
     OutputDebugStringW(wmsg.c_str());
@@ -158,59 +149,28 @@ void QtLogger::customMessageHandler(QtMsgType type, const QMessageLogContext& co
     fflush(stderr);
 #endif
 
-    // 将日志消息加入队列（快速路径）
+    // 仅在初始化后才写入文件
+    if (!initialized)
+        return;
+
+    // 同步写入日志文件
     {
-        QMutexLocker queueLock(&logMutex);
-        logQueue.enqueue(logMessage);
-    }
-
-    // 致命错误立即终止进程
-    if (type == QtFatalMsg)
-    {
-        abort();
-    }
-}
-
-QString QtLogger::getLogsDir()
-{
-    return qApp->applicationDirPath() + "/logs";
-}
-
-void QtLogger::processLogQueue()
-{
-    QMutexLocker queueLock(&logMutex);
-
-    // 检查日期变化和打开日志文件
-    QString today = QDate::currentDate().toString("yyyy-MM-dd");
-    QString logsDir = getLogsDir();
-    QString desiredLogPath = logsDir + "/app-" + today + ".log";
-
-    if (currentLogPath != desiredLogPath)
-    {
-        // 日期变化，关闭当前文件并打开新文件
-        if (currentLogFile && currentLogFile->isOpen())
+        QMutexLocker fileLock(&logMutex);
+        
+        // 确保文件已打开
+        if (!currentLogFile || !currentLogFile->isOpen())
         {
-            currentLogFile->close();
+            QString logsDir = getLogsDir();
+            QString today = QDate::currentDate().toString("yyyy-MM-dd");
+            QString logPath = logsDir + "/app-" + today + ".log";
+
+            QDir().mkpath(logsDir);
+            currentLogFile->setFileName(logPath);
+            currentLogFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+            currentLogPath = logPath;
         }
-        currentLogPath = desiredLogPath;
-        QDir().mkpath(logsDir);
-        currentLogFile->setFileName(desiredLogPath);
-        currentLogFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
-    }
 
-    // 确保文件已打开
-    if (currentLogFile && !currentLogFile->isOpen())
-    {
-        QDir().mkpath(logsDir);
-        currentLogFile->setFileName(currentLogPath);
-        currentLogFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
-    }
-
-    // 处理队列中的所有日志
-    while (!logQueue.isEmpty())
-    {
-        QString logMessage = logQueue.dequeue();
-
+        // 写入日志
         if (currentLogFile && currentLogFile->isOpen())
         {
             QTextStream stream(currentLogFile);
@@ -230,6 +190,43 @@ void QtLogger::processLogQueue()
             }
         }
     }
+
+    // 致命错误立即终止进程
+    if (type == QtFatalMsg)
+    {
+        abort();
+    }
+}
+
+QString QtLogger::getLogsDir()
+{
+    return qApp->applicationDirPath() + "/logs";
+}
+
+void QtLogger::openLogFile()
+{
+
+    if (currentLogFile && currentLogFile->isOpen())
+        return;
+
+    QString logsDir = getLogsDir();
+    QString today = QDate::currentDate().toString("yyyy-MM-dd");
+    QString logPath = logsDir + "/app-" + today + ".log";
+
+    QDir().mkpath(logsDir);
+    currentLogFile->setFileName(logPath);
+    currentLogFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+    currentLogPath = logPath;
+}
+
+void QtLogger::flushLogFile()
+{
+    QMutexLocker locker(&logMutex);
+    
+    if (currentLogFile && currentLogFile->isOpen())
+    {
+        currentLogFile->flush();
+    }
 }
 
 bool QtLogger::rotateCurrentLogFile()
@@ -246,6 +243,7 @@ bool QtLogger::rotateCurrentLogFile()
     // 关闭当前文件
     if (currentLogFile->isOpen())
     {
+        currentLogFile->flush();  // 刷新缓冲
         currentLogFile->close();
     }
 
@@ -282,3 +280,4 @@ bool QtLogger::cleanupLogs()
 
     return false;
 }
+

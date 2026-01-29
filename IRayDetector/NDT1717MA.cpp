@@ -305,6 +305,19 @@ bool NDT1717MA::GetMode(std::string& mode)
     return GetAttr(Attr_CurrentSubset, mode);
 }
 
+int NDT1717MA::GetFrameRate()
+{
+    if (!Initialized())
+        return 1;
+
+    int sequenceIntervalTime = gs_pDetInstance->GetAttrInt(Attr_UROM_SequenceIntervalTime);
+    if (sequenceIntervalTime <= 0)
+    {
+        return 1;
+    }
+    return 1000 / sequenceIntervalTime;
+}
+
 int NDT1717MA::GetModeMaxFrameRate(std::string mode)
 {
     qDebug() << "mode:" << mode.c_str();

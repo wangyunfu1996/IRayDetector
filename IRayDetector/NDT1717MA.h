@@ -63,6 +63,7 @@ public:
     bool WriteUserRAM();
 
     bool GetMode(std::string& mode);
+    int GetFrameRate();
     static int GetModeMaxFrameRate(std::string mode);
     static int GetMaxStackedNum();
 
